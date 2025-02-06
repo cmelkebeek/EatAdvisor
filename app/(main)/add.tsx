@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, TextInput, StyleSheet, FlatList, Image, TouchableOpacity, Alert, Modal } from "react-native";
-import { addMeal } from "../context/mealsContext";
+import { useMeals } from "../context/mealsContext";
+import { Ionicons } from '@expo/vector-icons';
+import { router, useLocalSearchParams } from "expo-router";
 
 const appId = process.env.EXPO_PUBLIC_EDAMAM_API_ID!;
 const appKey = process.env.EXPO_PUBLIC_EDAMAM_API_KEY!;
@@ -30,6 +32,17 @@ const Add = () => {
     const [selectedFoods, setSelectedFoods] = useState<any[]>([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [mealName, setMealName] = useState("");
+    const { scannedFood } = useLocalSearchParams();
+    const { addMeal } = useMeals();
+
+    useEffect(() => {
+        if (scannedFood) {
+            const food = JSON.parse(
+                Array.isArray(scannedFood) ? scannedFood[0] : scannedFood
+            );
+            addFoodMeal(food);
+        }
+    }, [scannedFood]);
 
     const fetchRecipes = async (query: string) => {
         const url = `${urlApi}?app_id=${appId}&app_key=${appKey}&ingr=${query}`;
@@ -45,7 +58,6 @@ const Add = () => {
 
     const addFoodMeal = async (item: any) => {
         setSelectedFoods([...selectedFoods, item]);
-        Alert.alert("Aliment ajouté", `L'aliment ${item.food.label} a bien été ajouté.`);
     };
 
     const handleAddMeal = () => {
@@ -59,20 +71,22 @@ const Add = () => {
 
     const saveMeal = async () => {
         const meal = {
+            id: Math.random().toString(36).substr(2, 9),
             name: mealName,
             foods: selectedFoods,
         };
         addMeal(meal);
-        console.log(meal);
         setModalVisible(false);
         setSelectedFoods([]);
         setMealName("");
         Alert.alert("Repas ajouté", "Le repas a bien été ajouté.");
+
+        router.push("/");
     };
     
     return (
         <View style={styles.container}>
-                        <View style={styles.searchContainer}>
+            <View style={styles.searchContainer}>
                 <Text>Ajouter un repas :</Text>
                 <View style={styles.searchRow}>
                     <TextInput
@@ -83,6 +97,9 @@ const Add = () => {
                     />
                     <TouchableOpacity style={styles.searchButton} onPress={() => fetchRecipes(query)}>
                         <Text style={styles.buttonText}>Rechercher</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.searchButton, { marginLeft: 10 }]} onPress={() => router.push("/camera")}>
+                        <Ionicons style={styles.buttonText} name="barcode-outline" size={24} color="white" />
                     </TouchableOpacity>
                 </View>
             </View>

@@ -1,163 +1,94 @@
-import { router } from "expo-router";
-import {
-  View,
-  ActivityIndicator,
-  StyleSheet,
-  Pressable,
-  Image,
-  Button,
-} from "react-native";
-import {
-  useCameraPermissions,
-  CameraView,
-  CameraType,
-  CameraCapturedPicture,
-} from "expo-camera";
-import { useEffect, useState, useRef } from "react";
-import { MaterialIcons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
-import path from "path";
-import * as FileSystem from "expo-file-system";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, Alert, Button } from "react-native";
+import { Camera, CameraView } from "expo-camera";
+import { useRouter } from "expo-router";
 
-export default function CameraScreen() {
-  const [permission, requestPermission] = useCameraPermissions();
+const appId = process.env.EXPO_PUBLIC_EDAMAM_API_ID!;
+const appKey = process.env.EXPO_PUBLIC_EDAMAM_API_KEY!;
 
-  const [facing, setFacing] = useState<CameraType>("back");
-  const camera = useRef<CameraView>(null);
-  const [picture, setPicture] = useState<CameraCapturedPicture>();
-  const [isRecording, setIsRecording] = useState(false);
+const CameraScreen = () => {
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [scanned, setScanned] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    if (permission && !permission.granted && permission.canAskAgain) {
-      requestPermission();
-    }
-  }, [permission]);
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === "granted");
+    })();
+  }, []);
 
-  const toggleCameraFacing = () => {
-    setFacing((current) => (current === "back" ? "front" : "back"));
-  };
+  const handleBarCodeScanned = async ({
+    type,
+    data,
+  }: {
+    type: string;
+    data: string;
+  }) => {
+    setScanned(true);
 
-  const onPress = () => {
-    if (isRecording) {
-      camera.current?.stopRecording();
-    } else {
-      takePicture();
-    }
-  };
-
-  const takePicture = async () => {
-    const res = await camera.current?.takePictureAsync();
-    setPicture(res);
-  };
-
-  const saveFile = async (uri?: string) => {
-    if (!uri) return;
-    // save file
-    const filename = path.parse(uri).base;
-
-    await FileSystem.copyAsync({
-      from: uri,
-      to: FileSystem.documentDirectory + filename,
-    });
-
-    setPicture(undefined);
-    router.back();
-  };
-
-  if (!permission?.granted) {
-    return <ActivityIndicator />;
-  }
-
-  if (picture) {
-    return (
-      <View style={{ flex: 1 }}>
-        {picture && (
-          <Image
-            source={{ uri: picture.uri }}
-            style={{ width: "100%", flex: 1 }}
-          />
-        )}
-
-        <View style={{ padding: 10 }}>
-          <SafeAreaView edges={["bottom"]}>
-            <Button
-              title="Save"
-              onPress={() => saveFile(picture?.uri)}
-            />
-          </SafeAreaView>
-        </View>
-        <MaterialIcons
-          onPress={() => {
-            setPicture(undefined);
-          }}
-          name="close"
-          size={35}
-          color="white"
-          style={{ position: "absolute", top: 50, left: 20 }}
-        />
-      </View>
+    const response = await fetch(
+      `https://api.edamam.com/api/food-database/v2/parser?upc=${data}&app_id=${appId}&app_key=${appKey}`
     );
+
+    const result = await response.json();
+
+    if (result.hints.length > 0) {
+      const food = result.hints[0];
+
+      router.push({
+        pathname: "/add",
+        params: { scannedFood: JSON.stringify(food) },
+      });
+    } else {
+      Alert.alert("Erreur", "Aucun aliment trouvé pour ce code-barres.");
+      setScanned(false);
+    }
+  };
+
+  if (hasPermission === null) {
+    return <Text>Demande de permission pour accéder à la caméra</Text>;
+  }
+  if (hasPermission === false) {
+    return <Text>Accès à la caméra refusé</Text>;
   }
 
   return (
-    <View>
+    <View style={styles.container}>
       <CameraView
-        ref={camera}
-        style={styles.camera}
-        facing={facing}
-      >
-        <View style={styles.footer}>
-          <View />
-          <Pressable
-            style={[
-              styles.recordButton,
-              { backgroundColor: isRecording ? "crimson" : "white" },
-            ]}
-            onPress={onPress}
-          />
-          <MaterialIcons
-            name="flip-camera-ios"
-            size={24}
-            color={"white"}
-            onPress={toggleCameraFacing}
-          />
-        </View>
-      </CameraView>
-
-      <MaterialIcons
-        name="close"
-        color={"white"}
-        style={styles.close}
-        size={30}
-        onPress={() => router.back()}
+        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+        style={StyleSheet.absoluteFillObject}
+        barcodeScannerSettings={{
+          barcodeTypes: [
+            "ean13",
+            "ean8",
+            "upc_a",
+            "upc_e",
+            "code39",
+            "code93",
+            "code128",
+            "qr",
+            "pdf417",
+            "aztec",
+            "datamatrix",
+            "itf14",
+            "codabar",
+          ],
+        }}
       />
+      {scanned && (
+        <Button title="Scanner à nouveau" onPress={() => setScanned(false)} />
+      )}
     </View>
   );
-}
+};
+
+export default CameraScreen;
 
 const styles = StyleSheet.create({
-  camera: {
-    width: "100%",
-    height: "100%",
-  },
-  footer: {
-    marginTop: "auto",
-    padding: 20,
-    paddingBottom: 50,
-    flexDirection: "row",
-    justifyContent: "space-between",
+  container: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#00000099",
-  },
-  close: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-  },
-  recordButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 50,
-    backgroundColor: "white",
   },
 });

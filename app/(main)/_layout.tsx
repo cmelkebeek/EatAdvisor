@@ -1,10 +1,11 @@
 import { useAuth } from "@clerk/clerk-expo";
-import { Redirect, Stack } from "expo-router";
+import { Redirect, router, Stack } from "expo-router";
 import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+
 export default function AuthRoutesLayout() {
-  const { isSignedIn, signOut } = useAuth();
+  const { isSignedIn } = useAuth();
 
   if (!isSignedIn) {
     return <Redirect href={"/sign-in"} />;
@@ -15,13 +16,34 @@ export default function AuthRoutesLayout() {
       <Stack.Screen 
         name="index" 
         options={{ 
-          title: "Home",
+          title: "Accueil",
           headerRight: () => (
-            <TouchableOpacity onPress={() => signOut()}>
-                <Ionicons name="log-out-outline" size={24} color="black" />
+            <TouchableOpacity onPress={() => router.push("/profile")}>
+                <Ionicons name="person-circle-outline" size={24} color="black" />
             </TouchableOpacity>
           )
         }} 
+      />
+
+      <Stack.Screen 
+        name="profile" 
+        options={{ 
+          title: "Profile",
+        }}
+      />
+
+      <Stack.Screen 
+        name="add" 
+        options={{ 
+          title: "Ajouter un repas",
+        }}
+      />
+
+      <Stack.Screen 
+        name="[id]" 
+        options={{ 
+          title: "Détail du repas",
+        }}
       />
       
     </Stack>
