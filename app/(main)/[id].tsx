@@ -7,17 +7,21 @@ const detailScreen = () => {
     const { meals } = useMeals();
     const meal = meals.find((m) => m.id === id);
 
+    console.log(meal.foods[0].food.nutrients.ENERC_KCAL);
+
     return (
         <View style={styles.container}>
             <Text style={styles.label}>Nom : <Text style={styles.value}>{meal?.name}</Text></Text>
 
             <Text style={styles.label}>Nombre d'aliments : <Text style={styles.value}>{meal?.foods.length}</Text></Text>
 
-            <Text style={styles.label}>Calories : <Text style={styles.value}>{meal?.foods.reduce((acc, food) => acc + food.calories, 0)}</Text></Text>
+            <Text style={styles.label}>Calories : <Text style={styles.value}>{meal?.foods.reduce((acc, food) => acc + food.food.nutrients.ENERC_KCAL, 0)} KCAL</Text></Text>
 
-            <Text style={styles.label}>Protéines : <Text style={styles.value}>{meal?.foods.reduce((acc, food) => acc + food.proteins, 0)}</Text></Text>
+            <Text style={styles.label}>Protéines : <Text style={styles.value}>{meal?.foods.reduce((acc, food) => acc + food.food.nutrients.PROCNT, 0)} g</Text></Text>
 
-            <Text style={styles.label}>Glucides : <Text style={styles.value}>{meal?.foods.reduce((acc, food) => acc + food.carbs, 0)}</Text></Text>
+            <Text style={styles.label}>Glucides : <Text style={styles.value}>{meal?.foods.reduce((acc, food) => acc + food.food.nutrients.CHOCDF, 0)} g</Text></Text>
+
+            <Text style={styles.label}>Lipides : <Text style={styles.value}>{meal?.foods.reduce((acc, food) => acc + food.food.nutrients.FAT, 0)} g</Text></Text>
 
             <Text style={styles.subtitle}>Liste des aliments :</Text>
             <FlatList
