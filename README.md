@@ -71,6 +71,6 @@ Avant d'installer le projet, assure-toi d'avoir les outils suivants :
 
 ## 📞 Contact
 
-👨‍💻 Développé par **[Ton Nom](https://github.com/ton-utilisateur)**  
-📧 Contact : `ton-email@example.com`
+👨‍💻 Développé par **[Camille melkebeek](https://github.com/cmelkebeek)**  
+📧 Contact : `camille.mbk@outlook.com`
 
