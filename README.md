@@ -20,7 +20,7 @@ Avant d'installer le projet, assure-toi d'avoir les outils suivants :
 
 1. Clone ce dépôt :
    ```sh
-   git clone https://github.com/ton-utilisateur/EatAdvisor.git
+   git clone https://github.com/cmelkebeek/EatAdvisor.git
    ```
 2. Accède au dossier du projet :
    ```sh
