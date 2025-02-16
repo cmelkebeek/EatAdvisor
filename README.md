@@ -71,6 +71,6 @@ Avant d'installer le projet, assure-toi d'avoir les outils suivants :
 
 ## 📞 Contact
 
-👨‍💻 Développé par **[Camille melkebeek](https://github.com/cmelkebeek)**  
+👨‍💻 Développé par **[Camille Melkebeek](https://github.com/cmelkebeek)**  
 📧 Contact : `camille.mbk@outlook.com`
 
